@@ -99,9 +99,28 @@ def preprocess_batch(frames: list[np.ndarray]) -> list[np.ndarray]:
 # ---------------- HYBRID LABELS ----------------
 def generate_cellpose_labels(frame: np.ndarray, model_type: str = "cyto", diameter: float = 0, channels: list[int] | tuple[int, int] = (0, 0), use_gpu: bool = True):
     from cellpose import models
-    model = models.Cellpose(gpu=use_gpu, model_type=model_type)
-    masks, flows, styles, diams = model.eval(frame, diameter=diameter if diameter > 0 else None, channels=list(channels))
-    return masks, flows, styles, diams
+    # Compatibilidade entre versões do Cellpose:
+    # - versões antigas: models.Cellpose(...)
+    # - versões novas: models.CellposeModel(...)
+    cp = None
+    if hasattr(models, "Cellpose"):
+        cp = models.Cellpose(gpu=use_gpu, model_type=model_type)
+        masks, flows, styles, diams = cp.eval(
+            frame,
+            diameter=diameter if diameter > 0 else None,
+            channels=list(channels),
+        )
+        return masks, flows, styles, diams
+    if hasattr(models, "CellposeModel"):
+        cp = models.CellposeModel(gpu=use_gpu, model_type=model_type)
+        masks, flows, styles = cp.eval(
+            frame,
+            diameter=diameter if diameter > 0 else None,
+            channels=list(channels),
+        )
+        diams = float(diameter) if diameter and diameter > 0 else 0.0
+        return masks, flows, styles, diams
+    raise RuntimeError("Versão do Cellpose não suportada: nem Cellpose nem CellposeModel disponíveis.")
 
 
 def load_ilastik_probability(path: Path) -> np.ndarray:
