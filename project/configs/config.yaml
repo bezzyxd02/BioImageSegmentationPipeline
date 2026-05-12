@@ -1,0 +1,43 @@
+project_name: mdck_dynamic_fluorescence
+paths:
+  ilastik_probability_dir: ""
+  output_dir: "outputs"
+training:
+  epochs: 50
+  batch_size: 8
+  num_workers: 2
+  learning_rate: 0.0003
+  weight_decay: 0.00001
+  early_stopping_patience: 8
+  grad_clip: 1.0
+  mixed_precision: true
+  auto_batch_size: true
+  patch_size: 256
+  patch_overlap: 32
+model:
+  in_channels: 1
+  out_channels: 1
+  base_channels: 64
+  dropout: 0.2
+  compile: true
+preprocessing:
+  rolling_ball_radius: 21
+  clahe_clip_limit: 2.5
+  gaussian_kernel: 5
+  percentile_low: 1.0
+  percentile_high: 99.0
+cellpose:
+  enabled: true
+  model_type: cyto
+  diameter: 0
+  channels: [0, 0]
+  batch_size: 8
+ilastik:
+  enabled: true
+inference:
+  tile_size: 256
+  tile_overlap: 32
+  half_precision: true
+tracking:
+  max_distance: 40.0
+  use_kalman: false
